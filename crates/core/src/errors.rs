@@ -22,6 +22,8 @@ pub enum Error {
     ExecuteReturnedRows,
     #[error("Hrana: `{0}`")]
     Hrana(#[from] crate::v2::HranaError),
+    #[error("unable to convert to sql: `{0}`")]
+    ToSqlConversionFailure(crate::BoxError),
 }
 
 pub(crate) fn error_from_handle(raw: *mut libsql_sys::ffi::sqlite3) -> String {
