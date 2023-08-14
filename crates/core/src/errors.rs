@@ -20,6 +20,8 @@ pub enum Error {
     QueryReturnedNoRows,
     #[error("Execute returned rows")]
     ExecuteReturnedRows,
+    #[error("Hrana: `{0}`")]
+    Hrana(#[from] crate::v2::HranaError),
 }
 
 pub(crate) fn error_from_handle(raw: *mut libsql_sys::ffi::sqlite3) -> String {

@@ -49,6 +49,7 @@ pub mod params;
 pub mod rows;
 pub mod statement;
 pub mod transaction;
+pub mod v2;
 
 pub type Result<T> = std::result::Result<T, errors::Error>;
 
@@ -75,5 +76,10 @@ pub fn version_number() -> i32 {
 
 /// Return the version of the underlying SQLite library as a string.
 pub fn version() -> &'static str {
-    unsafe { std::ffi::CStr::from_ptr(ffi::sqlite3_libversion()).to_str().unwrap() }
+    unsafe {
+        std::ffi::CStr::from_ptr(ffi::sqlite3_libversion())
+            .to_str()
+            .unwrap()
+    }
 }
+
