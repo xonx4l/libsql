@@ -9,7 +9,7 @@ use crate::{Params, Result};
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 
-use super::Conn;
+use super::{Conn, Statement};
 
 /// Information about the current session: the server-generated cookie
 /// and the URL that should be used for further communication.
@@ -255,6 +255,10 @@ impl Client {
 #[async_trait::async_trait]
 impl Conn for Client {
     async fn execute(&self, sql: &str, params: Params) -> Result<u64> {
+        todo!()
+    }
+
+    async fn prepare(&self, sql: &str) -> Result<Statement> {
         todo!()
     }
 }

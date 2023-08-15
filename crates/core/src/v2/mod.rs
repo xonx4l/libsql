@@ -1,38 +1,91 @@
+mod builder;
+mod execute;
 mod hrana;
+
+use std::sync::Arc;
 
 use crate::{Params, Result};
 pub use hrana::{Client, HranaError};
 
-pub struct Database {}
+enum DbType {
+    Memory,
+    Http { url: String },
+}
+
+pub struct Database {
+    db_type: DbType,
+}
 
 impl Database {
     pub fn connect(&self) -> Result<Connection> {
-        todo!()
+        match &self.db_type {
+            DbType::Memory => {
+                let db = crate::Database::open(":memory:")?;
+                let conn = db.connect()?;
+
+                let e = execute::Thread::new(conn)?;
+
+                let conn = Arc::new(LibsqlConnection { e });
+
+                Ok(Connection { conn })
+            }
+
+            DbType::Http { url } => {
+                todo!()
+            }
+        }
     }
 }
 
 #[async_trait::async_trait]
 trait Conn {
     async fn execute(&self, sql: &str, params: Params) -> Result<u64>;
+
+    async fn prepare(&self, sql: &str) -> Result<Statement>;
 }
 
 pub struct Connection {
-    conn: Box<dyn Conn>,
+    conn: Arc<dyn Conn>,
 }
 
 impl Connection {
     pub async fn execute(&self, sql: &str, params: impl Into<Params>) -> Result<u64> {
         self.conn.execute(sql, params.into()).await
     }
+
+    pub async fn prepare(&self, sql: &str) -> Result<Statement> {
+        self.conn.prepare(sql).await
+    }
 }
 
 pub struct Statement {
+    conn: Arc<dyn Conn>,
     sql: String,
 }
 
 pub struct BatchResult {}
 
 pub struct ResultSet {}
+
+struct LibsqlConnection<E> {
+    e: E,
+}
+
+#[async_trait::async_trait]
+impl<E: execute::Execute> Conn for LibsqlConnection<E> {
+    async fn execute(&self, sql: &str, params: Params) -> Result<u64> {
+        let sql = sql.to_string();
+        self.e.call(move |conn| conn.execute(sql, params)).await
+    }
+
+    async fn prepare(&self, sql: &str) -> Result<Statement> {
+        let sql = sql.to_string();
+
+        let stmt = self.e.call(move |conn| conn.prepare(sql)).await;
+
+        todo!()
+    }
+}
 
 /// Configuration for the database client
 #[derive(Debug)]
