@@ -63,6 +63,10 @@ pub struct Statement {
     sql: String,
 }
 
+impl Statement {
+    pub async fn query(&self, params: &Params) -> Result<()>;
+}
+
 pub struct BatchResult {}
 
 pub struct ResultSet {}
