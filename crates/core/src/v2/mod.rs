@@ -58,13 +58,20 @@ impl Connection {
     }
 }
 
+#[async_trait::async_trait]
+trait Stmt {
+    async fn bind(&self, params: Params);
+
+    async fn step(&self);
+}
+
 pub struct Statement {
     conn: Arc<dyn Conn>,
     sql: String,
 }
 
 impl Statement {
-    pub async fn query(&self, params: &Params) -> Result<()>;
+    pub async fn query(&self, params: &Params) -> Result<()> {}
 }
 
 pub struct BatchResult {}

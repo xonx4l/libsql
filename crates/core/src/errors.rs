@@ -20,8 +20,6 @@ pub enum Error {
     QueryReturnedNoRows,
     #[error("Execute returned rows")]
     ExecuteReturnedRows,
-    #[error("Hrana: `{0}`")]
-    Hrana(#[from] crate::v2::HranaError),
     #[error("unable to convert to sql: `{0}`")]
     ToSqlConversionFailure(crate::BoxError),
     #[error("Hrana: `{0}`")]
