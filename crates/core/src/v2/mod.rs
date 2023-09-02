@@ -23,9 +23,14 @@ enum DbType {
     Sync { db: crate::Database },
     Remote { url: String, auth_token: String },
 }
+pub enum OpenFlags {
+    SQLITE_RO,     
+    SQLITE_RW,        
+}
 
 pub struct Database {
     db_type: DbType,
+    flags: Option<OpenFlags>,
 }
 
 impl Database {
@@ -42,6 +47,23 @@ impl Database {
             },
         })
     }
+    
+    pub fn open_with_flags<S: Into<String>>(
+        db_path: S,
+        flags: OpenFlags,
+    ) -> Result<Database> {
+        let db_path = db_path.into();
+        let db_type = DbType::File {
+            path: db_path.clone(),
+            readonly: flags == OpenFlags::SQLITE_RO,
+        };
+
+        Ok(Database {
+            db_type,
+            flags: Some(flags),
+            })
+         }
+     }
 
     pub async fn open_with_sync(
         db_path: impl Into<String>,
@@ -67,7 +89,7 @@ impl Database {
     pub async fn connect(&self) -> Result<Connection> {
         match &self.db_type {
             DbType::Memory => {
-                let db = crate::Database::open(":memory:")?;
+                let db = crate::Database::open_with_flags(":memory:",self.get_flags())?;
                 let conn = db.connect()?;
 
                 let conn = Arc::new(LibsqlConnection { conn });
@@ -76,7 +98,7 @@ impl Database {
             }
 
             DbType::File { path } => {
-                let db = crate::Database::open(path)?;
+                let db = crate::Database::open_with_flags(path,self.get_flags())?;
                 let conn = db.connect()?;
 
                 let conn = Arc::new(LibsqlConnection { conn });
@@ -225,5 +247,8 @@ impl Conn for LibsqlConnection {
 
     fn last_insert_rowid(&self) -> i64 {
         self.conn.last_insert_rowid()
+    }
+    fn get_flags(&self) -> OpenFlags {
+        self.flags.unwrap_or(OpenFlags::SQLITE_RW)
     }
 }
