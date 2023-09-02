@@ -26,12 +26,16 @@ enum DbType {
 
 pub struct Database {
     db_type: DbType,
+    flags: Option<rusqlite::OpenFlags>,
 }
 
 impl Database {
-    pub fn open_in_memory() -> Result<Self> {
+     pub fn open_readonly(db_path: impl Into<String>) -> Result<Database> {
         Ok(Database {
-            db_type: DbType::Memory,
+            db_type: DbType::File {
+                path: db_path.into(),
+            },
+            flags: Some(rusqlite::OpenFlags::SQLITE_RO),
         })
     }
 
@@ -69,6 +73,7 @@ impl Database {
             DbType::Memory => {
                 let db = crate::Database::open(":memory:")?;
                 let conn = db.connect()?;
+                let flags = self.flags.unwrap_or_default();
 
                 let conn = Arc::new(LibsqlConnection { conn });
 
@@ -97,7 +102,14 @@ impl Database {
 
                 Ok(Connection { conn })
             }
-        }
+            DbType::Readonly { your_database.db)
+            let readonly_db = Database::open_readonly("your_database.db")?;
+            let connection = readonly_db.connect()?;
+               connection.close();
+    
+                Ok(())
+               }
+          }
     }
 
     pub async fn sync(&self) -> Result<usize> {
