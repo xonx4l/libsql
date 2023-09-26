@@ -41,14 +41,14 @@
 //!
 //! ## Examples
 //!
-//! You can find more examples in the [`examples`](https://github.com/penberg/libsql-experimental/tree/libsql-api/crates/core/examples) directory.
+//! You can find more examples in the [`examples`](https://github.com/tursodatabase/libsql/tree/main/crates/core/examples) directory.
 
 macro_rules! cfg_core {
     ($($item:item)*) => {
         $(
             #[cfg(feature = "core")]
             #[cfg_attr(docsrs, doc(cfg(feature = "fs")))]
-            $item
+         $item
         )*
     }
 }
